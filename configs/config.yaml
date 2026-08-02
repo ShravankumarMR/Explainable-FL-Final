@@ -35,9 +35,68 @@ preprocessing:
   categorical_encoding: onehot
 
 feature_engineering:
+  enabled: true
   selected_features: []
   create_interactions: false
   polynomial_degree: 1
+  artifacts_subdir: feature_engineering
+  transaction_dt:
+    enabled: true
+    source_column: TransactionDT
+    hour_feature: transaction_hour
+    weekday_feature: transaction_weekday
+    weekend_feature: is_weekend
+    weekend_days: [5, 6]
+  log_transaction_amount:
+    enabled: true
+    source_column: TransactionAmt
+    output_column: log_transaction_amt
+  missing_indicators:
+    enabled: true
+    columns: [TransactionAmt, DeviceType, DeviceInfo, P_emaildomain, R_emaildomain]
+    prefix: is_missing__
+  count_encoding:
+    enabled: true
+    columns: [card1, card2, addr1, addr2, P_emaildomain, R_emaildomain, DeviceType, DeviceInfo]
+    suffix: __count
+    fill_value: 0.0
+  frequency_encoding:
+    enabled: true
+    columns: [card1, card2, addr1, addr2, P_emaildomain, R_emaildomain, DeviceType, DeviceInfo]
+    suffix: __freq
+    fill_value: 0.0
+  aggregations:
+    device:
+      enabled: true
+      group_columns: [DeviceType, DeviceInfo]
+      value_columns: [TransactionAmt]
+      stats: [mean, std]
+    email:
+      enabled: true
+      group_columns: [P_emaildomain, R_emaildomain]
+      value_columns: [TransactionAmt]
+      stats: [mean, std]
+    card:
+      enabled: true
+      group_columns: [card1, card2, card3, card5]
+      value_columns: [TransactionAmt]
+      stats: [mean, std]
+    address:
+      enabled: true
+      group_columns: [addr1, addr2]
+      value_columns: [TransactionAmt]
+      stats: [mean, std]
+  interactions:
+    enabled: true
+    pairs:
+      - left: card1
+        right: addr1
+        op: concat
+        name: card1_x_addr1
+      - left: TransactionAmt
+        right: transaction_hour
+        op: divide
+        name: amt_per_hour
 
 model_parameters:
   algorithm: random_forest
@@ -87,7 +146,7 @@ pipelines:
   train:
     enabled: true
   infer:
-    enabled: false
+    enabled: true
   profile:
     enabled: true
   eda:

@@ -9,6 +9,13 @@
 - EDA split outputs include figures plus eda_artifacts.yaml metadata.
 - EDA reads merged parquet outputs created by ingestion, so ingestion remains the single source of merged train/test data.
 - Profiling and EDA can be independently toggled via config sections and pipelines toggles.
+- Feature engineering is integrated into train and infer pipelines via TabularFeatureEngineer.
+- Feature engineering artifacts are saved under data/processed/<dataset_key>/feature_engineering/.
+- feature_summary.csv is written during training artifact save, not regenerated during inference by default.
+- Inference must load both feature engineering and preprocessing artifacts before transform.
+- High-memory crashes were caused by repeated DataFrame copies in feature generators; generators now mutate a single working frame.
+- Preprocessing one-hot fragmentation warnings were caused by repeated column inserts; one-hot output now uses block assembly + concat.
+- Preprocessing and feature-engineering frequency names can collide; preprocessing now uses collision-safe fallback suffixes.
 
 ## Figure Set Produced By EDA
 
@@ -39,6 +46,8 @@
 - If terminal output capture is blank, use static diagnostics and file-level checks to validate changes.
 - For PowerShell, execute quoted interpreters using call operator:
   & "path/to/python.exe" -m pytest
+- For this workspace, the reliable interpreter command pattern is:
+  & "d:/Mtech/Main project and Thesis/Explainable-FL-Final/.venv-1/Scripts/python.exe" -m <module>
 
 ## How To Add A New Dataset
 

@@ -42,9 +42,18 @@ class PreprocessingConfig:
 
 @dataclass(slots=True)
 class FeatureEngineeringConfig:
+    enabled: bool = True
     selected_features: list[str] = field(default_factory=list)
     create_interactions: bool = False
     polynomial_degree: int = 1
+    artifacts_subdir: str = "feature_engineering"
+    transaction_dt: dict[str, Any] = field(default_factory=dict)
+    log_transaction_amount: dict[str, Any] = field(default_factory=dict)
+    missing_indicators: dict[str, Any] = field(default_factory=dict)
+    count_encoding: dict[str, Any] = field(default_factory=dict)
+    frequency_encoding: dict[str, Any] = field(default_factory=dict)
+    aggregations: dict[str, Any] = field(default_factory=dict)
+    interactions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -286,11 +295,24 @@ def load_app_config(path: str | Path) -> AppConfig:
                 ),
             ),
             feature_engineering=FeatureEngineeringConfig(
+                enabled=bool(feature_engineering_raw.get("enabled", True)),
                 selected_features=list(feature_engineering_raw.get("selected_features", [])),
                 create_interactions=bool(
                     feature_engineering_raw.get("create_interactions", False)
                 ),
                 polynomial_degree=int(feature_engineering_raw.get("polynomial_degree", 1)),
+                artifacts_subdir=str(
+                    feature_engineering_raw.get("artifacts_subdir", "feature_engineering")
+                ),
+                transaction_dt=dict(feature_engineering_raw.get("transaction_dt", {})),
+                log_transaction_amount=dict(
+                    feature_engineering_raw.get("log_transaction_amount", {})
+                ),
+                missing_indicators=dict(feature_engineering_raw.get("missing_indicators", {})),
+                count_encoding=dict(feature_engineering_raw.get("count_encoding", {})),
+                frequency_encoding=dict(feature_engineering_raw.get("frequency_encoding", {})),
+                aggregations=dict(feature_engineering_raw.get("aggregations", {})),
+                interactions=dict(feature_engineering_raw.get("interactions", {})),
             ),
             model_parameters=ModelParametersConfig(
                 algorithm=str(model_parameters_raw.get("algorithm", "random_forest")),

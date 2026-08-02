@@ -9,6 +9,7 @@ import pandas as pd
 
 from explainable_fl.config.loader import ConfigError
 from explainable_fl.data_ingestion.ingestor import IEEECISDataIngestor
+from explainable_fl.feature_engineering.engineer import TabularFeatureEngineer
 from explainable_fl.pipelines.base import BasePipeline
 from explainable_fl.preprocessing.preprocessor import TabularPreprocessor
 
@@ -30,20 +31,34 @@ class InferencePipeline(BasePipeline):
         test_df = pd.read_parquet(report.output_files["test_merged_parquet"])
 
         processed_root = Path(self.config.paths.data_processed) / report.dataset_name
-        artifacts_dir = processed_root / self.config.preprocessing.artifacts_subdir
-        artifacts_path = artifacts_dir / "preprocessing_artifacts.pkl"
-        if not artifacts_path.exists():
+        preprocessing_artifacts_dir = processed_root / self.config.preprocessing.artifacts_subdir
+        feature_artifacts_dir = processed_root / self.config.feature_engineering.artifacts_subdir
+
+        feature_artifacts_path = feature_artifacts_dir / "feature_engineering_artifacts.pkl"
+        if not feature_artifacts_path.exists():
+            raise ConfigError(
+                "Feature engineering artifacts not found for inference. "
+                f"Expected file: {feature_artifacts_path}. Run training pipeline first."
+            )
+
+        preprocessing_artifacts_path = preprocessing_artifacts_dir / "preprocessing_artifacts.pkl"
+        if not preprocessing_artifacts_path.exists():
             raise ConfigError(
                 "Preprocessing artifacts not found for inference. "
-                f"Expected file: {artifacts_path}. Run training pipeline first."
+                f"Expected file: {preprocessing_artifacts_path}. Run training pipeline first."
             )
+
+        feature_engineer = TabularFeatureEngineer(config=self.config).load_artifacts(
+            feature_artifacts_path
+        )
+        featured_test = feature_engineer.transform(test_df)
 
         preprocessor = TabularPreprocessor(
             config=self.config,
             max_onehot_cardinality=self.config.preprocessing.max_onehot_cardinality,
-        ).load_artifacts(artifacts_path)
+        ).load_artifacts(preprocessing_artifacts_path)
 
-        inference_ready = preprocessor.transform(test_df)
+        inference_ready = preprocessor.transform(featured_test)
         processed_root.mkdir(parents=True, exist_ok=True)
         output_path = processed_root / "inference_preprocessed.parquet"
         inference_ready.to_parquet(output_path, index=False)

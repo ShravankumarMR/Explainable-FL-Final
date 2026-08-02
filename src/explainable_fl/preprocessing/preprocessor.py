@@ -312,26 +312,43 @@ class TabularPreprocessor(BasePreprocessor):
             categorical_fill_values=categorical_fill_values,
         )
 
-        transformed = pd.DataFrame(index=prepared.index)
+        blocks: list[pd.DataFrame] = []
 
-        for column in numeric_columns:
-            transformed[column] = prepared[column]
+        if numeric_columns:
+            blocks.append(prepared[numeric_columns].copy())
 
-        for column in frequency_columns:
-            mapping = frequency_maps[column]
-            transformed[f"{column}__freq"] = (
-                prepared[column]
-                .astype(str)
-                .map(mapping)
-                .fillna(0.0)
-                .astype("float32")
-            )
+        if frequency_columns:
+            frequency_block = pd.DataFrame(index=prepared.index)
+            for column in frequency_columns:
+                mapping = frequency_maps[column]
+                encoded_name = f"{column}__freq"
+                if encoded_name in prepared.columns or encoded_name in frequency_block.columns:
+                    encoded_name = f"{column}__freq_pre"
+                frequency_block[encoded_name] = (
+                    prepared[column]
+                    .astype(str)
+                    .map(mapping)
+                    .fillna(0.0)
+                    .astype("float32")
+                )
+            blocks.append(frequency_block)
 
         for column in onehot_columns:
-            source = prepared[column].astype(str)
-            for level in onehot_levels[column]:
-                encoded_name = f"{column}__{level}"
-                transformed[encoded_name] = (source == level).astype("uint8")
+            categories = onehot_levels[column]
+            source = pd.Categorical(prepared[column].astype(str), categories=categories)
+            onehot_block = pd.get_dummies(
+                source,
+                prefix=column,
+                prefix_sep="__",
+                dtype="uint8",
+            )
+            blocks.append(onehot_block)
+
+        transformed = (
+            pd.concat(blocks, axis=1)
+            if blocks
+            else pd.DataFrame(index=prepared.index)
+        )
 
         return self._optimize_data_types(transformed)
 

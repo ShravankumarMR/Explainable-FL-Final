@@ -205,16 +205,23 @@ def test_training_and_inference_pipelines_generate_preprocessed_outputs(tmp_path
 
     dataset_processed_root = processed_root / "ieee_cis_fraud"
     artifacts_dir = dataset_processed_root / "preprocessing"
+    feature_artifacts_dir = dataset_processed_root / "feature_engineering"
 
     train_preprocessed = dataset_processed_root / "train_preprocessed.parquet"
     test_preprocessed = dataset_processed_root / "test_preprocessed.parquet"
     artifacts_pickle = artifacts_dir / "preprocessing_artifacts.pkl"
     artifacts_yaml = artifacts_dir / "preprocessing_artifacts.yaml"
+    feature_artifacts_pickle = feature_artifacts_dir / "feature_engineering_artifacts.pkl"
+    feature_artifacts_yaml = feature_artifacts_dir / "feature_engineering_artifacts.yaml"
+    feature_summary_csv = feature_artifacts_dir / "feature_summary.csv"
 
     assert train_preprocessed.exists()
     assert test_preprocessed.exists()
     assert artifacts_pickle.exists()
     assert artifacts_yaml.exists()
+    assert feature_artifacts_pickle.exists()
+    assert feature_artifacts_yaml.exists()
+    assert feature_summary_csv.exists()
 
     InferencePipeline(config=config).run()
     inference_preprocessed = dataset_processed_root / "inference_preprocessed.parquet"
