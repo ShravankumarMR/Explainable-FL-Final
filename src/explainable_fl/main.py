@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 
-from explainable_fl.config.loader import load_yaml_config
+from explainable_fl.config.loader import load_app_config
 from explainable_fl.pipelines.inference_pipeline import InferencePipeline
 from explainable_fl.pipelines.training_pipeline import TrainingPipeline
 from explainable_fl.utilities.logging_utils import configure_logging
@@ -27,10 +27,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    config = load_yaml_config(args.config)
+    config = load_app_config(args.config)
 
-    logging_config_path = config.get("logging", {}).get("config_path")
-    configure_logging(logging_config_path)
+    configure_logging(config.logging.config_path)
 
     if args.mode == "train":
         pipeline = TrainingPipeline(config=config)
