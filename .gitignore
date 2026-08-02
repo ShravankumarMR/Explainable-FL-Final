@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local artifacts
+logs/
+models/*.pkl
+models/*.joblib
+models/*.pt
+models/*.onnx
+reports/*.html
+reports/*.pdf
+
+# Keep folder structure
+!models/.gitkeep
+!notebooks/.gitkeep
+!reports/.gitkeep
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep

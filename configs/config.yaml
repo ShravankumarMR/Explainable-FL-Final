@@ -1,0 +1,24 @@
+project:
+  name: explainable-fl
+  environment: dev
+  random_seed: 42
+
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  data_processed: data/processed
+  models_dir: models
+  reports_dir: reports
+
+run:
+  mode: train  # train | infer
+  experiment_name: baseline
+
+logging:
+  config_path: configs/logging.yaml
+
+pipelines:
+  train:
+    enabled: true
+  infer:
+    enabled: false

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "explainable-fl"
+version = "0.1.0"
+description = "Production-ready scaffold for an explainable federated learning project"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+  { name = "Your Name" }
+]
+dependencies = [
+  "pyyaml>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-cov>=5.0.0",
+  "ruff>=0.6.0",
+  "mypy>=1.11.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+warn_unused_configs = true
