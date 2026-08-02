@@ -59,6 +59,14 @@ class EvaluationConfig:
 
 
 @dataclass(slots=True)
+class ProfilingConfig:
+    enabled: bool = True
+    include_train: bool = True
+    include_test: bool = True
+    high_cardinality_ratio: float = 0.8
+
+
+@dataclass(slots=True)
 class LoggingConfig:
     config_path: str | None = None
     level: str = "INFO"
@@ -96,6 +104,7 @@ class PipelinesConfig:
     ingest: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     train: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     infer: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
+    profile: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
 
 
 @dataclass(slots=True)
@@ -113,6 +122,7 @@ class AppConfig:
     feature_engineering: FeatureEngineeringConfig
     model_parameters: ModelParametersConfig
     evaluation: EvaluationConfig
+    profiling: ProfilingConfig
     logging: LoggingConfig
     run: RunConfig = field(default_factory=RunConfig)
     pipelines: PipelinesConfig = field(default_factory=PipelinesConfig)
@@ -154,6 +164,9 @@ def load_app_config(path: str | Path) -> AppConfig:
     feature_engineering_raw = _read_section(raw, "feature_engineering")
     model_parameters_raw = _read_section(raw, "model_parameters")
     evaluation_raw = _read_section(raw, "evaluation")
+    profiling_raw = raw.get("profiling", {})
+    if not isinstance(profiling_raw, dict):
+        raise ConfigError("Config section 'profiling' must be a mapping/object")
     logging_raw = _read_section(raw, "logging")
 
     run_raw = raw.get("run", {})
@@ -198,13 +211,15 @@ def load_app_config(path: str | Path) -> AppConfig:
     train_raw = pipelines_raw.get("train", {})
     infer_raw = pipelines_raw.get("infer", {})
     ingest_raw = pipelines_raw.get("ingest", {})
+    profile_raw = pipelines_raw.get("profile", {})
     if (
         not isinstance(train_raw, dict)
         or not isinstance(infer_raw, dict)
         or not isinstance(ingest_raw, dict)
+        or not isinstance(profile_raw, dict)
     ):
         raise ConfigError(
-            "Pipeline sections 'ingest', 'train', and 'infer' must be mappings/objects"
+            "Pipeline sections 'ingest', 'train', 'infer', and 'profile' must be mappings/objects"
         )
 
     try:
@@ -253,6 +268,14 @@ def load_app_config(path: str | Path) -> AppConfig:
                 test_size=float(evaluation_raw.get("test_size", 0.2)),
                 cross_validation_folds=int(evaluation_raw.get("cross_validation_folds", 5)),
             ),
+            profiling=ProfilingConfig(
+                enabled=bool(profiling_raw.get("enabled", True)),
+                include_train=bool(profiling_raw.get("include_train", True)),
+                include_test=bool(profiling_raw.get("include_test", True)),
+                high_cardinality_ratio=float(
+                    profiling_raw.get("high_cardinality_ratio", 0.8)
+                ),
+            ),
             logging=LoggingConfig(
                 config_path=(
                     str(logging_raw["config_path"])
@@ -269,6 +292,7 @@ def load_app_config(path: str | Path) -> AppConfig:
                 ingest=PipelineToggleConfig(enabled=bool(ingest_raw.get("enabled", True))),
                 train=PipelineToggleConfig(enabled=bool(train_raw.get("enabled", True))),
                 infer=PipelineToggleConfig(enabled=bool(infer_raw.get("enabled", True))),
+                profile=PipelineToggleConfig(enabled=bool(profile_raw.get("enabled", True))),
             ),
         )
     except KeyError as exc:

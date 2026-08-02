@@ -8,6 +8,7 @@ import logging
 from explainable_fl.config.loader import load_app_config
 from explainable_fl.pipelines.ingestion_pipeline import IngestionPipeline
 from explainable_fl.pipelines.inference_pipeline import InferencePipeline
+from explainable_fl.pipelines.profiling_pipeline import ProfilingPipeline
 from explainable_fl.pipelines.training_pipeline import TrainingPipeline
 from explainable_fl.utilities.logging_utils import configure_logging
 
@@ -19,7 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", required=True, help="Path to YAML configuration file")
     parser.add_argument(
         "--mode",
-        choices=["ingest", "train", "infer"],
+        choices=["ingest", "train", "infer", "profile"],
         required=True,
         help="Pipeline mode to execute",
     )
@@ -36,6 +37,8 @@ def main() -> None:
         pipeline = IngestionPipeline(config=config)
     elif args.mode == "train":
         pipeline = TrainingPipeline(config=config)
+    elif args.mode == "profile":
+        pipeline = ProfilingPipeline(config=config)
     else:
         pipeline = InferencePipeline(config=config)
 
