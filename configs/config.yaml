@@ -10,6 +10,23 @@ paths:
   models_dir: models
   reports_dir: reports
 
+ingestion:
+  active_dataset: ieee_cis_fraud
+  validate_schema: true
+  datasets:
+    ieee_cis_fraud:
+      base_dir: IEEE-CIS-FRAUD
+      train_transaction_file: train_transaction.csv
+      train_identity_file: train_identity.csv
+      test_transaction_file: test_transaction.csv
+      test_identity_file: test_identity.csv
+      merge_key: TransactionID
+      required_transaction_columns: [TransactionID]
+      required_identity_columns: [TransactionID]
+      output_train_parquet: train_merged.parquet
+      output_test_parquet: test_merged.parquet
+      report_file: ingestion_report.yaml
+
 preprocessing:
   target_column: target
   drop_columns: []
@@ -43,6 +60,8 @@ logging:
   level: INFO
 
 pipelines:
+  ingest:
+    enabled: true
   train:
     enabled: true
   infer:

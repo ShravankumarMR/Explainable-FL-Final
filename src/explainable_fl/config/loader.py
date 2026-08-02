@@ -65,12 +65,35 @@ class LoggingConfig:
 
 
 @dataclass(slots=True)
+class DatasetIngestionConfig:
+    base_dir: str
+    train_transaction_file: str = "train_transaction.csv"
+    train_identity_file: str = "train_identity.csv"
+    test_transaction_file: str = "test_transaction.csv"
+    test_identity_file: str = "test_identity.csv"
+    merge_key: str = "TransactionID"
+    required_transaction_columns: list[str] = field(default_factory=lambda: ["TransactionID"])
+    required_identity_columns: list[str] = field(default_factory=lambda: ["TransactionID"])
+    output_train_parquet: str = "train_merged.parquet"
+    output_test_parquet: str = "test_merged.parquet"
+    report_file: str = "ingestion_report.yaml"
+
+
+@dataclass(slots=True)
+class IngestionConfig:
+    active_dataset: str
+    datasets: dict[str, DatasetIngestionConfig]
+    validate_schema: bool = True
+
+
+@dataclass(slots=True)
 class PipelineToggleConfig:
     enabled: bool = True
 
 
 @dataclass(slots=True)
 class PipelinesConfig:
+    ingest: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     train: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     infer: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
 
@@ -85,6 +108,7 @@ class RunConfig:
 class AppConfig:
     project: ProjectConfig
     paths: PathsConfig
+    ingestion: IngestionConfig
     preprocessing: PreprocessingConfig
     feature_engineering: FeatureEngineeringConfig
     model_parameters: ModelParametersConfig
@@ -125,6 +149,7 @@ def load_app_config(path: str | Path) -> AppConfig:
         raise ConfigError("Config section 'project' must be a mapping/object")
 
     paths_raw = _read_section(raw, "paths")
+    ingestion_raw = _read_section(raw, "ingestion")
     preprocessing_raw = _read_section(raw, "preprocessing")
     feature_engineering_raw = _read_section(raw, "feature_engineering")
     model_parameters_raw = _read_section(raw, "model_parameters")
@@ -139,10 +164,48 @@ def load_app_config(path: str | Path) -> AppConfig:
     if not isinstance(pipelines_raw, dict):
         raise ConfigError("Config section 'pipelines' must be a mapping/object")
 
+    if not isinstance(ingestion_raw.get("datasets"), dict):
+        raise ConfigError("Config section 'ingestion.datasets' must be a mapping/object")
+
+    dataset_map: dict[str, DatasetIngestionConfig] = {}
+    for dataset_name, dataset_raw in ingestion_raw["datasets"].items():
+        if not isinstance(dataset_raw, dict):
+            raise ConfigError(
+                f"Ingestion dataset '{dataset_name}' must be a mapping/object"
+            )
+        dataset_map[str(dataset_name)] = DatasetIngestionConfig(
+            base_dir=str(dataset_raw.get("base_dir", "")),
+            train_transaction_file=str(
+                dataset_raw.get("train_transaction_file", "train_transaction.csv")
+            ),
+            train_identity_file=str(dataset_raw.get("train_identity_file", "train_identity.csv")),
+            test_transaction_file=str(
+                dataset_raw.get("test_transaction_file", "test_transaction.csv")
+            ),
+            test_identity_file=str(dataset_raw.get("test_identity_file", "test_identity.csv")),
+            merge_key=str(dataset_raw.get("merge_key", "TransactionID")),
+            required_transaction_columns=list(
+                dataset_raw.get("required_transaction_columns", ["TransactionID"])
+            ),
+            required_identity_columns=list(
+                dataset_raw.get("required_identity_columns", ["TransactionID"])
+            ),
+            output_train_parquet=str(dataset_raw.get("output_train_parquet", "train_merged.parquet")),
+            output_test_parquet=str(dataset_raw.get("output_test_parquet", "test_merged.parquet")),
+            report_file=str(dataset_raw.get("report_file", "ingestion_report.yaml")),
+        )
+
     train_raw = pipelines_raw.get("train", {})
     infer_raw = pipelines_raw.get("infer", {})
-    if not isinstance(train_raw, dict) or not isinstance(infer_raw, dict):
-        raise ConfigError("Pipeline sections 'train' and 'infer' must be mappings/objects")
+    ingest_raw = pipelines_raw.get("ingest", {})
+    if (
+        not isinstance(train_raw, dict)
+        or not isinstance(infer_raw, dict)
+        or not isinstance(ingest_raw, dict)
+    ):
+        raise ConfigError(
+            "Pipeline sections 'ingest', 'train', and 'infer' must be mappings/objects"
+        )
 
     try:
         return AppConfig(
@@ -157,6 +220,11 @@ def load_app_config(path: str | Path) -> AppConfig:
                 data_processed=str(paths_raw["data_processed"]),
                 models_dir=str(paths_raw["models_dir"]),
                 reports_dir=str(paths_raw["reports_dir"]),
+            ),
+            ingestion=IngestionConfig(
+                active_dataset=str(ingestion_raw.get("active_dataset", "")),
+                datasets=dataset_map,
+                validate_schema=bool(ingestion_raw.get("validate_schema", True)),
             ),
             preprocessing=PreprocessingConfig(
                 target_column=str(preprocessing_raw.get("target_column", "target")),
@@ -198,6 +266,7 @@ def load_app_config(path: str | Path) -> AppConfig:
                 experiment_name=str(run_raw.get("experiment_name", "baseline")),
             ),
             pipelines=PipelinesConfig(
+                ingest=PipelineToggleConfig(enabled=bool(ingest_raw.get("enabled", True))),
                 train=PipelineToggleConfig(enabled=bool(train_raw.get("enabled", True))),
                 infer=PipelineToggleConfig(enabled=bool(infer_raw.get("enabled", True))),
             ),

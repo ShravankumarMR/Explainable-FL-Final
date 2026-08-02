@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+
+from explainable_fl.data_ingestion.ingestor import IEEECISDataIngestor
 from explainable_fl.pipelines.base import BasePipeline
+
+LOGGER = logging.getLogger("explainable_fl.pipelines.training")
 
 
 class TrainingPipeline(BasePipeline):
@@ -12,4 +17,6 @@ class TrainingPipeline(BasePipeline):
     """
 
     def run(self) -> None:
-        raise NotImplementedError("Training pipeline logic is not implemented yet")
+        ingestor = IEEECISDataIngestor()
+        report = ingestor.run(self.config)
+        LOGGER.info("Training pipeline ingestion stage completed: %s", report.output_files)

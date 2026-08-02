@@ -19,6 +19,8 @@ def test_typed_config_loader_reads_all_sections() -> None:
     config = load_app_config("configs/config.yaml")
 
     assert config.paths.data_raw == "data/raw"
+    assert config.ingestion.active_dataset == "ieee_cis_fraud"
+    assert "ieee_cis_fraud" in config.ingestion.datasets
     assert config.preprocessing.target_column == "target"
     assert config.feature_engineering.polynomial_degree == 1
     assert config.model_parameters.algorithm == "random_forest"
@@ -44,5 +46,5 @@ logging:
         encoding="utf-8",
     )
 
-    with pytest.raises(ConfigError, match="preprocessing"):
+    with pytest.raises(ConfigError, match="ingestion"):
         load_app_config(bad_cfg)

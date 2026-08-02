@@ -32,6 +32,7 @@ Thumbs.db
 
 # Local artifacts
 logs/
+data/
 models/*.pkl
 models/*.joblib
 models/*.pt
@@ -43,6 +44,3 @@ reports/*.pdf
 !models/.gitkeep
 !notebooks/.gitkeep
 !reports/.gitkeep
-!data/raw/.gitkeep
-!data/interim/.gitkeep
-!data/processed/.gitkeep

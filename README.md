@@ -55,8 +55,17 @@ pip install -e .[dev]
 ## Run Entry Point
 
 ```bash
+python -m explainable_fl.main --config configs/config.yaml --mode ingest
 python -m explainable_fl.main --config configs/config.yaml --mode train
 ```
+
+## IEEE-CIS Ingestion
+
+- Raw source folder is configured under the ingestion dataset mapping.
+- The default dataset key is `ieee_cis_fraud`, backed by `data/raw/IEEE-CIS-FRAUD`.
+- Ingestion merges `train_transaction` with `train_identity`, and `test_transaction` with `test_identity` using `TransactionID`.
+- Merged parquet files are saved under `data/interim/ieee_cis_fraud/`.
+- A YAML ingestion report is saved under `reports/ingestion/ieee_cis_fraud/`.
 
 ## Notes
 
