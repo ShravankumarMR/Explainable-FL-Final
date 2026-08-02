@@ -67,6 +67,24 @@ class ProfilingConfig:
 
 
 @dataclass(slots=True)
+class EDAConfig:
+    enabled: bool = True
+    include_train: bool = True
+    include_test: bool = True
+    target_column: str = "isFraud"
+    sample_size: int = 20000
+    max_numerical_features: int = 20
+    max_categorical_features: int = 16
+    max_category_levels: int = 12
+    correlation_top_n: int = 40
+    pca_components: int = 2
+    umap_n_neighbors: int = 15
+    umap_min_dist: float = 0.1
+    feature_importance_top_n: int = 20
+    random_state: int = 42
+
+
+@dataclass(slots=True)
 class LoggingConfig:
     config_path: str | None = None
     level: str = "INFO"
@@ -105,6 +123,7 @@ class PipelinesConfig:
     train: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     infer: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
     profile: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
+    eda: PipelineToggleConfig = field(default_factory=PipelineToggleConfig)
 
 
 @dataclass(slots=True)
@@ -123,6 +142,7 @@ class AppConfig:
     model_parameters: ModelParametersConfig
     evaluation: EvaluationConfig
     profiling: ProfilingConfig
+    eda: EDAConfig
     logging: LoggingConfig
     run: RunConfig = field(default_factory=RunConfig)
     pipelines: PipelinesConfig = field(default_factory=PipelinesConfig)
@@ -167,6 +187,9 @@ def load_app_config(path: str | Path) -> AppConfig:
     profiling_raw = raw.get("profiling", {})
     if not isinstance(profiling_raw, dict):
         raise ConfigError("Config section 'profiling' must be a mapping/object")
+    eda_raw = raw.get("eda", {})
+    if not isinstance(eda_raw, dict):
+        raise ConfigError("Config section 'eda' must be a mapping/object")
     logging_raw = _read_section(raw, "logging")
 
     run_raw = raw.get("run", {})
@@ -212,14 +235,16 @@ def load_app_config(path: str | Path) -> AppConfig:
     infer_raw = pipelines_raw.get("infer", {})
     ingest_raw = pipelines_raw.get("ingest", {})
     profile_raw = pipelines_raw.get("profile", {})
+    eda_pipeline_raw = pipelines_raw.get("eda", {})
     if (
         not isinstance(train_raw, dict)
         or not isinstance(infer_raw, dict)
         or not isinstance(ingest_raw, dict)
         or not isinstance(profile_raw, dict)
+        or not isinstance(eda_pipeline_raw, dict)
     ):
         raise ConfigError(
-            "Pipeline sections 'ingest', 'train', 'infer', and 'profile' must be mappings/objects"
+            "Pipeline sections 'ingest', 'train', 'infer', 'profile', and 'eda' must be mappings/objects"
         )
 
     try:
@@ -276,6 +301,24 @@ def load_app_config(path: str | Path) -> AppConfig:
                     profiling_raw.get("high_cardinality_ratio", 0.8)
                 ),
             ),
+            eda=EDAConfig(
+                enabled=bool(eda_raw.get("enabled", True)),
+                include_train=bool(eda_raw.get("include_train", True)),
+                include_test=bool(eda_raw.get("include_test", True)),
+                target_column=str(
+                    eda_raw.get("target_column", preprocessing_raw.get("target_column", "isFraud"))
+                ),
+                sample_size=int(eda_raw.get("sample_size", 20000)),
+                max_numerical_features=int(eda_raw.get("max_numerical_features", 20)),
+                max_categorical_features=int(eda_raw.get("max_categorical_features", 16)),
+                max_category_levels=int(eda_raw.get("max_category_levels", 12)),
+                correlation_top_n=int(eda_raw.get("correlation_top_n", 40)),
+                pca_components=int(eda_raw.get("pca_components", 2)),
+                umap_n_neighbors=int(eda_raw.get("umap_n_neighbors", 15)),
+                umap_min_dist=float(eda_raw.get("umap_min_dist", 0.1)),
+                feature_importance_top_n=int(eda_raw.get("feature_importance_top_n", 20)),
+                random_state=int(eda_raw.get("random_state", project_raw.get("random_seed", 42))),
+            ),
             logging=LoggingConfig(
                 config_path=(
                     str(logging_raw["config_path"])
@@ -293,6 +336,7 @@ def load_app_config(path: str | Path) -> AppConfig:
                 train=PipelineToggleConfig(enabled=bool(train_raw.get("enabled", True))),
                 infer=PipelineToggleConfig(enabled=bool(infer_raw.get("enabled", True))),
                 profile=PipelineToggleConfig(enabled=bool(profile_raw.get("enabled", True))),
+                eda=PipelineToggleConfig(enabled=bool(eda_pipeline_raw.get("enabled", True))),
             ),
         )
     except KeyError as exc:

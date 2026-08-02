@@ -1,0 +1,20 @@
+split: train
+rows_full: 590540
+rows_sampled: 20000
+figures:
+  fraud_distribution: reports\eda\IEEE-CIS-FRAUD\train\figures\fraud_distribution.png
+  numerical_features: reports\eda\IEEE-CIS-FRAUD\train\figures\numerical_features.png
+  categorical_features: reports\eda\IEEE-CIS-FRAUD\train\figures\categorical_features.png
+  transaction_amount: reports\eda\IEEE-CIS-FRAUD\train\figures\transaction_amount.png
+  product_categories: reports\eda\IEEE-CIS-FRAUD\train\figures\product_categories.png
+  card_features: reports\eda\IEEE-CIS-FRAUD\train\figures\card_features.png
+  email_domains: reports\eda\IEEE-CIS-FRAUD\train\figures\email_domains.png
+  identity_features: reports\eda\IEEE-CIS-FRAUD\train\figures\identity_features.png
+  missing_values: reports\eda\IEEE-CIS-FRAUD\train\figures\missing_values.png
+  correlations: reports\eda\IEEE-CIS-FRAUD\train\figures\correlations.png
+  transactiondt_analysis: reports\eda\IEEE-CIS-FRAUD\train\figures\transactiondt_analysis.png
+  fraud_by_hour: reports\eda\IEEE-CIS-FRAUD\train\figures\fraud_by_hour.png
+  fraud_by_day: reports\eda\IEEE-CIS-FRAUD\train\figures\fraud_by_day.png
+  pca: reports\eda\IEEE-CIS-FRAUD\train\figures\pca.png
+  umap: reports\eda\IEEE-CIS-FRAUD\train\figures\umap.png
+  extra_trees_feature_importance: reports\eda\IEEE-CIS-FRAUD\train\figures\extra_trees_feature_importance.png

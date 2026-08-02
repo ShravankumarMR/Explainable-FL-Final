@@ -57,6 +57,7 @@ pip install -e .[dev]
 ```bash
 python -m explainable_fl.main --config configs/config.yaml --mode ingest
 python -m explainable_fl.main --config configs/config.yaml --mode train
+python -m explainable_fl.main --config configs/config.yaml --mode eda
 ```
 
 ## IEEE-CIS Ingestion
@@ -66,6 +67,13 @@ python -m explainable_fl.main --config configs/config.yaml --mode train
 - Ingestion merges `train_transaction` with `train_identity`, and `test_transaction` with `test_identity` using `TransactionID`.
 - Merged parquet files are saved under `data/interim/ieee_cis_fraud/`.
 - A YAML ingestion report is saved under `reports/ingestion/ieee_cis_fraud/`.
+
+## EDA Pipeline
+
+- Run: `python -m explainable_fl.main --config configs/config.yaml --mode eda`
+- Outputs are saved under `reports/eda/<dataset_base_dir>/<split>/figures`.
+- For IEEE-CIS, figures are stored in `reports/eda/IEEE-CIS-FRAUD/`.
+- Artifacts include fraud distribution, numerical/categorical feature plots, transaction amount, product/card/email/identity plots, missing values, correlations, TransactionDT analysis, fraud by hour/day, PCA, UMAP, and ExtraTrees feature importance.
 
 ## Notes
 

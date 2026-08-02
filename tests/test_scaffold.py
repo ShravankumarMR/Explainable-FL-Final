@@ -27,8 +27,11 @@ def test_typed_config_loader_reads_all_sections() -> None:
     assert "accuracy" in config.evaluation.metrics
     assert config.profiling.enabled is True
     assert config.profiling.high_cardinality_ratio > 0
+    assert config.eda.enabled is True
+    assert config.eda.sample_size > 0
     assert config.logging.config_path == "configs/logging.yaml"
     assert config.pipelines.profile.enabled is True
+    assert config.pipelines.eda.enabled is True
 
 
 def test_typed_config_loader_requires_core_sections(tmp_path: Path) -> None:

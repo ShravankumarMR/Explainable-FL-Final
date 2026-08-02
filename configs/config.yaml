@@ -57,8 +57,24 @@ profiling:
   include_test: true
   high_cardinality_ratio: 0.8
 
+eda:
+  enabled: true
+  include_train: true
+  include_test: true
+  target_column: isFraud
+  sample_size: 20000
+  max_numerical_features: 20
+  max_categorical_features: 16
+  max_category_levels: 12
+  correlation_top_n: 40
+  pca_components: 2
+  umap_n_neighbors: 15
+  umap_min_dist: 0.1
+  feature_importance_top_n: 20
+  random_state: 42
+
 run:
-  mode: train  # ingest | train | infer | profile
+  mode: train  # ingest | train | infer | profile | eda
   experiment_name: baseline
 
 logging:
@@ -73,4 +89,6 @@ pipelines:
   infer:
     enabled: false
   profile:
+    enabled: true
+  eda:
     enabled: true
