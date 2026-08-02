@@ -8,7 +8,7 @@ Goal: avoid repeated full-tree/file scans and load only targeted files.
 - Name: explainable-fl
 - Language: Python 3.12
 - Package root: src/explainable_fl
-- Main entrypoint: python -m explainable_fl.main --config configs/config.yaml --mode <ingest|train|infer>
+- Main entrypoint: python -m explainable_fl.main --config configs/config.yaml --mode <ingest|train|infer|profile|eda>
 
 ## Core Repository Layout
 
@@ -24,9 +24,16 @@ Goal: avoid repeated full-tree/file scans and load only targeted files.
     - ingestion_pipeline.py
     - training_pipeline.py
     - inference_pipeline.py
+    - profiling_pipeline.py
+    - eda_pipeline.py
+  - eda/
+    - analyzer.py
+    - profiler.py
 - tests/
   - test_scaffold.py
   - test_ieee_cis_ingestion.py
+  - test_profiling_pipeline.py
+  - test_eda_pipeline.py
 
 ## Current Working Configuration Contract
 
@@ -39,6 +46,8 @@ Top-level sections in configs/config.yaml:
 - feature_engineering
 - model_parameters
 - evaluation
+- profiling
+- eda
 - run
 - logging
 - pipelines
@@ -75,6 +84,50 @@ Outputs:
 - data/interim/ieee_cis_fraud/test_merged.parquet
 - reports/ingestion/ieee_cis_fraud/ingestion_report.yaml
 
+## Profiling System
+
+Pipeline behavior:
+
+- Profile mode runs ProfilingPipeline -> DatasetProfiler
+- Produces CSV summaries plus HTML report per split
+
+Outputs:
+
+- reports/profiling/ieee_cis_fraud/train/
+- reports/profiling/ieee_cis_fraud/test/
+
+## EDA Visualization System
+
+Pipeline behavior:
+
+- EDA mode runs EDAPipeline -> DatasetEDAAnalyzer
+- Reuses ingestion parquet outputs and creates split-specific figures
+
+Outputs:
+
+- reports/eda/IEEE-CIS-FRAUD/train/figures/
+- reports/eda/IEEE-CIS-FRAUD/test/figures/
+- reports/eda/IEEE-CIS-FRAUD/<split>/eda_artifacts.yaml
+
+Key EDA artifacts:
+
+- fraud_distribution
+- numerical_features
+- categorical_features
+- transaction_amount
+- product_categories
+- card_features
+- email_domains
+- identity_features
+- missing_values
+- correlations
+- transactiondt_analysis
+- fraud_by_hour
+- fraud_by_day
+- pca
+- umap
+- extra_trees_feature_importance
+
 Report includes:
 
 - row_counts
@@ -93,7 +146,8 @@ Report includes:
 2. If config question: read configs/config.yaml and src/explainable_fl/config/loader.py only.
 3. If ingestion question: read src/explainable_fl/data_ingestion/ingestor.py and src/explainable_fl/pipelines/ingestion_pipeline.py.
 4. If runtime/CLI question: read src/explainable_fl/main.py.
-5. If validation question: read tests/test_ieee_cis_ingestion.py and tests/test_scaffold.py.
+5. If profiling/EDA validation question: read tests/test_profiling_pipeline.py and tests/test_eda_pipeline.py.
+6. If ingestion validation question: read tests/test_ieee_cis_ingestion.py and tests/test_scaffold.py.
 
 ## Standard Commands
 
@@ -101,6 +155,10 @@ Report includes:
   - python -m explainable_fl.main --config configs/config.yaml --mode ingest
 - Run tests:
   - python -m pytest -q
+- Run profiling:
+  - python -m explainable_fl.main --config configs/config.yaml --mode profile
+- Run EDA:
+  - python -m explainable_fl.main --config configs/config.yaml --mode eda
 
 ## Extension Pattern (Future Datasets)
 

@@ -36,6 +36,8 @@ class PreprocessingConfig:
     missing_value_strategy: str = "median"
     scale_numeric: bool = True
     categorical_encoding: str = "onehot"
+    max_onehot_cardinality: int = 16
+    artifacts_subdir: str = "preprocessing"
 
 
 @dataclass(slots=True)
@@ -275,6 +277,12 @@ def load_app_config(path: str | Path) -> AppConfig:
                 scale_numeric=bool(preprocessing_raw.get("scale_numeric", True)),
                 categorical_encoding=str(
                     preprocessing_raw.get("categorical_encoding", "onehot")
+                ),
+                max_onehot_cardinality=int(
+                    preprocessing_raw.get("max_onehot_cardinality", 16)
+                ),
+                artifacts_subdir=str(
+                    preprocessing_raw.get("artifacts_subdir", "preprocessing")
                 ),
             ),
             feature_engineering=FeatureEngineeringConfig(
